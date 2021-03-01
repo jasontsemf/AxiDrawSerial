@@ -61,9 +61,9 @@ def send_command(c):
     cmd = c + '\r'
     port_axidraw.write((cmd).encode('utf-8'))     # write a string
     print('message written:', cmd)
-    resp = port_axidraw.readline().decode('utf-8').strip()
-    # print(resp.lower())
-    while resp.lower() != 'ok':
+    res = port_axidraw.readline().decode('utf-8').strip()
+    # print(res.lower())
+    while res.lower() != 'ok':
         pass
 
 
