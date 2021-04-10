@@ -1,10 +1,17 @@
 # pip3 install pyserial
 import serial
 from serial.tools.list_ports import comports
+import math
 
 # your path should vary, edit after you scan_port()
-path = '/dev/tty.usbmodem14101'
-port_axidraw = serial.Serial(path)
+port_name = '/dev/tty.usbmodem14101'
+port_axidraw = serial.Serial(port_name)
+my_path = [
+    [2000, 0],
+    [2000, 2000],
+    [0, 2000],
+    [0, 0]
+]
 
 
 def init():
@@ -25,6 +32,11 @@ def draw():
     toggle_pen()
     send_command('XM,3000,-1000,1000')
     toggle_pen()
+
+    # draw a path with XY coordinates
+    pen_down()
+    move_along(my_path)
+    pen_up()
 
 
 def scan_port():
@@ -65,6 +77,28 @@ def send_command(c):
     # print(res.lower())
     while res.lower() != 'ok':
         pass
+
+
+def move_along(p):
+    output = []
+    print(len(p))
+    for i in range(len(p)):
+        # for i in ps:
+        if (i - 1 >= 0):    # current point that has a previous point
+            # calculate step differences
+            x = p[i][0] - p[i - 1][0]
+            y = p[i][1] - p[i - 1][1]
+        else:
+            x = p[i][0]
+            y = p[i][1]
+        xOrY = x if (abs(x) > abs(y)) else y   # find the longer axis
+        # limit movement speed to 30% of the operating speed range
+        ms = math.floor(((abs(xOrY) / 1.31 - abs(xOrY) / 25)) * 0.3)
+        output.append([ms, x, y])
+    for j in range(len(output)):
+        cmd = 'XM,{ms},{x},{y}'.format(
+            ms=output[j][0], x=output[j][1], y=output[j][2])
+        send_command(cmd)
 
 
 init()
